@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>blob-slide demo</title>
+
+	<style>
+		body {
+			padding: 50px;
+			color: #444;
+			font-size: 1rem;
+		}
+
+		.menu {
+			display: flex;
+			width: 500px;
+			border: 2px dashed #ccc;
+			padding: 5px;
+		}
+
+		.menu + .menu { margin-top: 20px; }
+
+		.vmenu { flex-direction: column; }
+
+		.item {
+			padding: 5px;
+			background-color: #f1f1f1;
+			color: inherit;
+			margin: 5px;
+		}
+	</style>
+</head>
+<body>
+
+	<nav class="menu vmenu">
+		<a href="#" id="vmenu-toggle" class="item item--top">vslide()</a>
+		<a href="#" class="item item--toggle" hidden>One</a>
+		<a href="#" class="item item--toggle" hidden>Two</a>
+		<a href="#" class="item item--toggle" hidden>Three</a>
+		<a href="#" class="item item--toggle" hidden>Four</a>
+		<a href="#" class="item item--toggle" hidden>Five</a>
+	</nav>
+
+	<nav class="menu hmenu">
+		<a href="#" id="hmenu-toggle" class="item item--top">hslide()</a>
+		<a href="#" class="item item--toggle" hidden>One</a>
+		<a href="#" class="item item--toggle" hidden>Two</a>
+		<a href="#" class="item item--toggle" hidden>Three</a>
+		<a href="#" class="item item--toggle" hidden>Four</a>
+		<a href="#" class="item item--toggle" hidden>Five</a>
+	</nav>
+
+	<!-- Javascript -->
+	<script src="blob-slide.js"></script>
+	<script>
+		document.getElementById('vmenu-toggle').addEventListener('click', function(e){
+			e.preventDefault();
+
+			blobSlide.vslide(
+				document.querySelectorAll('.vmenu .item--toggle'),
+				{ duration: 500, transition: 'ease' }
+			);
+		});
+
+		document.getElementById('hmenu-toggle').addEventListener('click', function(e){
+			e.preventDefault();
+
+			blobSlide.hslide(
+				document.querySelectorAll('.hmenu .item--toggle'),
+				{ duration: 500, transition: 'ease' }
+			);
+		});
+	</script>
+</body>
+</html>
