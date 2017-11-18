@@ -102,7 +102,11 @@ var blobSlide = {
 	 * @return void|bool Nothing or false.
 	 */
 	slide: function(el, to, options) {
-		if (!el.nodeType || (typeof to !== 'object')) {
+		if (
+			!el.nodeType ||
+			(typeof to !== 'object') ||
+			el.getAttribute('data-progress-key')
+		) {
 			return false;
 		}
 
@@ -201,6 +205,7 @@ var blobSlide = {
 		}, false);
 
 		// Run the animation!
+		el.setAttribute('data-progress-key', progressKey);
 		el.style.overflow = 'hidden';
 		el.style.animation = 'blobSlide-' + progressKey + ' ' + options.transition + ' ' + options.duration/1000 + 's';
 	},
