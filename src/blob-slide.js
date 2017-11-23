@@ -1,7 +1,7 @@
 /**
  * blob-slide
  *
- * @version 1.0
+ * @version 1.0.1
  * @home https://github.com/Blobfolio/blob-slide
  *
  * Copyright © 2017 Blobfolio, LLC <https://blobfolio.com>
@@ -40,8 +40,17 @@ var blobSlide = {
 		}
 
 		var to = {},
-			next = this.getNext(el),
-			current = this.getCurrent(el);
+			next;
+
+		if (options.force === 'show') {
+			next = this.getSomething(el);
+		}
+		else if (options.force === 'hide') {
+			next = this.getNothing();
+		}
+		else {
+			next = this.getNext(el);
+		}
 
 		if (false === next) {
 			return false;
@@ -77,7 +86,17 @@ var blobSlide = {
 		}
 
 		var to = {},
+			next;
+
+		if (options.force === 'show') {
+			next = this.getSomething(el);
+		}
+		else if (options.force === 'hide') {
+			next = this.getNothing();
+		}
+		else {
 			next = this.getNext(el);
+		}
 
 		if (false === next) {
 			return false;
@@ -104,20 +123,33 @@ var blobSlide = {
 	slide: function(el, to, options) {
 		if (
 			!el.nodeType ||
-			(typeof to !== 'object') ||
-			el.getAttribute('data-progress-key')
+			(typeof to !== 'object')
 		) {
 			return false;
 		}
 
-		// Find or set a timer key.
-		var progressKey = this.progressKey(el);
+		var progressKey = parseInt(el.getAttribute('data-progress-key'), 10) || false,
+			from = false;
 
-		// Abort if we're already doing stuff.
-		if (this.progress[progressKey]) {
-			return false;
+		// Stop existing animations.
+		if (progressKey) {
+			// Pause the animation so we can grab the current
+			// dimensions.
+			el.style.animationPlayState = 'paused';
+			from = this.getCurrent(el);
+
+			// End the current animation.
+			var event = new CustomEvent('animationend', {'detail': 'blobSlide-' + progressKey});
+			el.dispatchEvent(event);
+		}
+
+		// Generate a new animation key.
+		progressKey = parseInt((Math.random() + '').replace('.', ''), 10);
+		while(this.progress[progressKey]) {
+			progressKey++;
 		}
 		this.progress[progressKey] = true;
+		el.setAttribute('data-progress-key', progressKey);
 
 		// Make sure we have a sane transition duration.
 		if (typeof options !== 'object') {
@@ -144,9 +176,12 @@ var blobSlide = {
 			options.transition = 'linear';
 		}
 
-		// Note our starting conditions.
-		var from = this.getCurrent(el),
-			toKeys = Object.keys(to),
+		// Grab starting dimensions if not already pulled.
+		if (false === from) {
+			from = this.getCurrent(el);
+		}
+
+		var toKeys = Object.keys(to),
 			animationProps = Object.keys(this.getNothing()),
 			animation = {
 				from: [],
@@ -160,10 +195,20 @@ var blobSlide = {
 					return '-' + match.toLowerCase();
 				});
 
-				animation.to.push(css + ': ' + to[i] + 'px;');
-				animation.from.push(css + ': ' + from[i] + 'px;');
+				if (to[i] !== from[i]) {
+					animation.to.push(css + ': ' + to[i] + 'px;');
+					animation.from.push(css + ': ' + from[i] + 'px;');
+				}
 			}
 		});
+
+		// No change?
+		if (!animation.to.length) {
+			el.removeAttribute('data-progress-key');
+			delete(this.progress[progressKey]);
+
+			return false;
+		}
 
 		// Generate a stylesheet with this animation.
 		var style = document.createElement('style');
@@ -179,10 +224,11 @@ var blobSlide = {
 		}
 
 		// Clean things up when the animation is complete.
-		el.addEventListener('animationend', function cb(e){
-			if (e.animationName === 'blobSlide-' + progressKey) {
+		el.addEventListener('animationend', function(e){
+			var eventKey = 'blobSlide-' + progressKey;
+			if ((e.animationName === eventKey) || (e.detail === eventKey)) {
 				// We just went to nothingness.
-				if (from.width > 0 && from.height > 0) {
+				if (to.width <= 0 || to.height <= 0) {
 					el.setAttribute('hidden', true);
 					el.removeAttribute('style');
 				}
@@ -193,19 +239,18 @@ var blobSlide = {
 				}
 
 				// Remove the stylesheet.
-				document.body.removeChild(document.getElementById('blobSlide-' + progressKey));
+				document.body.removeChild(document.getElementById(eventKey));
 
 				// Clear progress trackers.
 				delete(blobSlide.progress[progressKey]);
 				el.removeAttribute('data-progress-key');
 
 				// We only needed this once.
-				e.currentTarget.removeEventListener(e.type, cb);
+				e.target.removeEventListener(e.type, arguments.callee);
 			}
 		}, false);
 
 		// Run the animation!
-		el.setAttribute('data-progress-key', progressKey);
 		el.style.overflow = 'hidden';
 		el.style.animation = 'blobSlide-' + progressKey + ' ' + options.transition + ' ' + options.duration/1000 + 's';
 	},
@@ -234,48 +279,35 @@ var blobSlide = {
 	},
 
 	/**
-	 * Get/Set Animation Key
+	 * State of Something
 	 *
-	 * We want to track in-progress animations for each element.
-	 * Javascript gets confused if we try to just key an object
-	 * with a node, so instead we'll generate a random integer.
+	 * Clone an object to find its natural dimensions.
 	 *
 	 * @param DOMElement $el Element.
-	 * @return int|bool Key or false.
+	 * @return array Properties.
 	 */
-	progressKey: function(el) {
+	getSomething: function(el) {
 		if (!el.nodeType) {
 			return false;
 		}
 
-		// Figure out where we're starting.
-		var keys = Object.keys(this.progress),
-			progressKey = parseInt(el.getAttribute('data-progress-key'), 10) || false,
-			oldKey = progressKey;
+		// If our element is hidden, we need to quickly make a
+		// visible clone so we can see what kind of space it would
+		// take up.
+		var parent = el.parentNode,
+			newEl = el.cloneNode(true);
 
-		// Clear old/invalid keys.
-		if ((false !== progressKey) && (keys.indexOf(progressKey) === -1)) {
-			progressKey = false;
-		}
+		newEl.removeAttribute('hidden');
+		newEl.removeAttribute('style');
+		newEl.style.display = 'block';
+		newEl.style.visibility = 'visible';
+		newEl.style.opacity = 0;
 
-		// Set a new key if necessary.
-		if (false === progressKey) {
-			// Start from a semi-random place.
-			progressKey = parseInt((Math.random() + '').replace('.', ''), 10);
+		parent.appendChild(newEl);
+		var out = this.getCurrent(newEl);
+		parent.removeChild(newEl);
 
-			// If we happen to collide with an existing key, just
-			// plus-plus until we're unique.
-			while(keys.indexOf(progressKey) !== -1) {
-				progressKey++;
-			}
-		}
-
-		// Save and return.
-		if (oldKey !== progressKey) {
-			el.setAttribute('data-progress-key', progressKey);
-		}
-
-		return progressKey;
+		return out;
 	},
 
 	/**
@@ -286,7 +318,6 @@ var blobSlide = {
 	 * a bunch of zeroes (because the next state is nothingness).
 	 *
 	 * @param DOMElement $el Element.
-	 * @param int $duration Transition duration in milliseconds.
 	 * @return void|bool Nothing or false.
 	 */
 	getNext: function(el) {
@@ -294,31 +325,13 @@ var blobSlide = {
 			return false;
 		}
 
-		// Start with zeroes everywhere.
-		var out = this.getNothing();
-
 		// The object is visible, so we want to zero it out.
 		if (this.isPainted(el)) {
-			return out;
+			return this.getNothing();
 		}
 
-		// If our element is hidden, we need to quickly make a
-		// visible clone so we can see what kind of space it would
-		// take up.
-		var parent = el.parentNode,
-			newEl = el.cloneNode(true);
-
-		newEl.removeAttribute('hidden');
-		newEl.style.display = 'block';
-		newEl.style.visibility = 'visible';
-		newEl.style.opacity = 0;
-
-		parent.appendChild(newEl);
-		out = this.getCurrent(newEl);
-		parent.removeChild(newEl);
-
 		// And return the results.
-		return out;
+		return this.getSomething(el);
 	},
 
 	/**
@@ -335,15 +348,13 @@ var blobSlide = {
 			return false;
 		}
 
-		// Start with zeroes everywhere.
-		var out = this.getNothing();
-
 		if (!this.isPainted(el)) {
-			return out;
+			return this.getNothing();
 		}
 
 		// Computed can give us everything we need.
-		var computed = window.getComputedStyle(el, null);
+		var out = {},
+			computed = window.getComputedStyle(el, null);
 
 		// Copy the values over, but make sure everything's a float.
 		out.width = parseFloat(computed.getPropertyValue('width')) || 0.0;

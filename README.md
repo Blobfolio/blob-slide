@@ -72,6 +72,7 @@ Both methods work the same way. If a `DOMElement` is fully hidden, it will slide
 | *string* | display | When transitioning to visibility, this display type will be applied to the element. | `"block"` |
 | *int* | duration | Animation duration in milliseconds. | `100` |
 | *string* | transition | Transition type to use, either `"ease"` or `"linear"`. | `"linear"` |
+| *string* | force | Rather than toggle, transition to a specific state, either `"show"` or `"hide"`. | `NULL` |
 
 ### Example
 
