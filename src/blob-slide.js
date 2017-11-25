@@ -1,7 +1,7 @@
 /**
  * blob-slide
  *
- * @version 1.0.1
+ * @version 1.1.0
  * @home https://github.com/Blobfolio/blob-slide
  *
  * Copyright © 2017 Blobfolio, LLC <https://blobfolio.com>
@@ -13,12 +13,6 @@
 var blobSlide = {
 	// Keep track of what's animating.
 	progress: {},
-
-	// These are the transition types that can be used.
-	transitionProps: [
-		'ease',
-		'linear',
-	],
 
 	/**
 	 * Horizontal Slide Toggle
@@ -128,28 +122,12 @@ var blobSlide = {
 			return false;
 		}
 
-		var progressKey = parseInt(el.getAttribute('data-progress-key'), 10) || false,
-			from = false;
+		var progressKey = parseInt(el.getAttribute('data-progress-key'), 10) || false;
 
-		// Stop existing animations.
-		if (progressKey) {
-			// Pause the animation so we can grab the current
-			// dimensions.
-			el.style.animationPlayState = 'paused';
-			from = this.getCurrent(el);
-
-			// End the current animation.
-			var event = new CustomEvent('animationend', {'detail': 'blobSlide-' + progressKey});
-			el.dispatchEvent(event);
+		// Stop any in-progress animations.
+		if (typeof this.progress[progressKey] !== 'undefined') {
+			this.progress[progressKey].abort = true;
 		}
-
-		// Generate a new animation key.
-		progressKey = parseInt((Math.random() + '').replace('.', ''), 10);
-		while(this.progress[progressKey]) {
-			progressKey++;
-		}
-		this.progress[progressKey] = true;
-		el.setAttribute('data-progress-key', progressKey);
 
 		// Make sure we have a sane transition duration.
 		if (typeof options !== 'object') {
@@ -172,50 +150,90 @@ var blobSlide = {
 		}
 
 		// Sanitize transition.
-		if (this.transitionProps.indexOf(options.transition) === -1) {
+		if (!options.transition || (typeof this.easing[options.transition] === 'undefined')) {
 			options.transition = 'linear';
 		}
 
-		// Grab starting dimensions if not already pulled.
-		if (false === from) {
-			from = this.getCurrent(el);
+		// Generate a new animation key.
+		progressKey = parseInt((Math.random() + '').replace('.', ''), 10);
+		while(this.progress[progressKey]) {
+			progressKey++;
 		}
+		this.progress[progressKey] = {
+			start: null,
+			abort: false,
+			props: {},
+		};
+		el.setAttribute('data-progress-key', progressKey);
 
-		var toKeys = Object.keys(to),
-			animationProps = Object.keys(this.getNothing()),
-			animation = {
-				from: [],
-				to: [],
-			};
+		var from = this.getCurrent(el),
+			toKeys = Object.keys(to),
+			propKeys = Object.keys(this.getNothing());
 
-		// Convert our transition into CSS animations.
-		animationProps.forEach(function(i){
+		// Find out which properties we should be changing to.
+		propKeys.forEach(function(i){
 			if ((toKeys.indexOf(i) !== -1) && !isNaN(to[i])) {
-				var css = i.replace(/([A-Z])/g, function(match){
-					return '-' + match.toLowerCase();
-				});
-
 				if (to[i] !== from[i]) {
-					animation.to.push(css + ': ' + to[i] + 'px;');
-					animation.from.push(css + ': ' + from[i] + 'px;');
+					blobSlide.progress[progressKey].props[i] = [from[i], to[i]];
 				}
 			}
 		});
 
-		// No change?
-		if (!animation.to.length) {
-			el.removeAttribute('data-progress-key');
+		// Nothing to animate?
+		if (!Object.keys(this.progress[progressKey].props).length) {
 			delete(this.progress[progressKey]);
-
+			el.removeAttribute('data-progress-key');
 			return false;
 		}
 
-		// Generate a stylesheet with this animation.
-		var style = document.createElement('style');
-		style.setAttribute('id', 'blobSlide-' + progressKey);
-		style.setAttribute('type', 'text/css');
-		style.innerHTML = '@keyframes blobSlide-' + progressKey + ' { from { ' + animation.from.join('') + ' } to { ' + animation.to.join('') + ' } }';
-		document.body.appendChild(style);
+		var tick = function(timestamp) {
+			if (blobSlide.progress[progressKey].start === null) {
+				blobSlide.progress[progressKey].start = timestamp;
+			}
+
+			// Early abort?
+			if (blobSlide.progress[progressKey].abort) {
+				delete(blobSlide.progress[progressKey]);
+				el.removeAttribute('data-progress-key');
+				return;
+			}
+
+			// Figure out time and scale.
+			var elapsed = timestamp - blobSlide.progress[progressKey].start,
+				progress = Math.min(elapsed / options.duration, 1),
+				scale = blobSlide.easing[options.transition](progress),
+				from = blobSlide.getCurrent(el),
+				propsKeys = Object.keys(blobSlide.progress[progressKey].props);
+
+			// Update the draw.
+			propsKeys.forEach(function(i){
+				var oldV = blobSlide.progress[progressKey].props[i][0],
+					newV = blobSlide.progress[progressKey].props[i][1],
+					diff = newV - oldV;
+
+				el.style[i] = oldV + (diff * scale) + 'px';
+			});
+
+			// Call again?
+			if (scale < 1) {
+				return window.requestAnimationFrame(tick);
+			}
+
+			// We've transitioned to somethingness.
+			if (
+				((propsKeys.indexOf('width') !== -1) && (blobSlide.progress[progressKey].props.width[1] > 0)) ||
+				((propsKeys.indexOf('height') !== -1) && (blobSlide.progress[progressKey].props.height[1] > 0))
+			) {
+				el.removeAttribute('style');
+				el.style.display = options.display;
+			}
+			else {
+				el.setAttribute('hidden', true);
+				el.removeAttribute('style');
+			}
+
+			el.removeAttribute('data-progress-key');
+		};
 
 		// Make sure the element is visible.
 		if (!this.isPainted(el)) {
@@ -223,36 +241,9 @@ var blobSlide = {
 			el.style.display = options.display;
 		}
 
-		// Clean things up when the animation is complete.
-		el.addEventListener('animationend', function(e){
-			var eventKey = 'blobSlide-' + progressKey;
-			if ((e.animationName === eventKey) || (e.detail === eventKey)) {
-				// We just went to nothingness.
-				if (to.width <= 0 || to.height <= 0) {
-					el.setAttribute('hidden', true);
-					el.removeAttribute('style');
-				}
-				// We just went to somethingness.
-				else {
-					el.removeAttribute('style');
-					el.style.display = options.display;
-				}
-
-				// Remove the stylesheet.
-				document.body.removeChild(document.getElementById(eventKey));
-
-				// Clear progress trackers.
-				delete(blobSlide.progress[progressKey]);
-				el.removeAttribute('data-progress-key');
-
-				// We only needed this once.
-				e.target.removeEventListener(e.type, arguments.callee);
-			}
-		}, false);
-
-		// Run the animation!
+		// And call it.
 		el.style.overflow = 'hidden';
-		el.style.animation = 'blobSlide-' + progressKey + ' ' + options.transition + ' ' + options.duration/1000 + 's';
+		window.requestAnimationFrame(tick);
 	},
 
 	/**
@@ -390,5 +381,41 @@ var blobSlide = {
 
 		var computed = window.getComputedStyle(el, null);
 		return computed.display !== 'none';
-	}
+	},
+
+	/**
+	 * Easing Helpers
+	 *
+	 * @see {https://gist.github.com/gre/1650294}
+	 */
+	easing: {
+		// No easing, no acceleration.
+		linear: function (t) { return t; },
+		// Alias of easeInOutCubic.
+		ease: function (t) { return t<0.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1; },
+		// Accelerating from zero velocity.
+		easeInQuad: function (t) { return t*t; },
+		// Decelerating to zero velocity.
+		easeOutQuad: function (t) { return t*(2-t); },
+		// Acceleration until halfway, then deceleration.
+		easeInOutQuad: function (t) { return t<0.5 ? 2*t*t : -1+(4-2*t)*t; },
+		// Accelerating from zero velocity.
+		easeInCubic: function (t) { return t*t*t; },
+		// Decelerating to zero velocity.
+		easeOutCubic: function (t) { return (--t)*t*t+1; },
+		// Acceleration until halfway, then deceleration.
+		easeInOutCubic: function (t) { return t<0.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1; },
+		// Accelerating from zero velocity.
+		easeInQuart: function (t) { return t*t*t*t; },
+		// Decelerating to zero velocity.
+		easeOutQuart: function (t) { return 1-(--t)*t*t*t; },
+		// Acceleration until halfway, then deceleration.
+		easeInOutQuart: function (t) { return t<0.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t; },
+		// Accelerating from zero velocity.
+		easeInQuint: function (t) { return t*t*t*t*t; },
+		// Decelerating to zero velocity.
+		easeOutQuint: function (t) { return 1+(--t)*t*t*t*t; },
+		// Acceleration until halfway, then deceleration.
+		easeInOutQuint: function (t) { return t<0.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t; }
+	},
 };
