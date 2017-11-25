@@ -33,7 +33,7 @@ blob-slide is a small, dependency-free Javascript library with a single focus: h
 
 blob-slide computes the current sizing properties for an element (width, height, margins, and padding), and then computes the sizing properties of the reverse state (either visible or hidden).
 
-Once the to/from values have been established, it generates a temporary CSS3 `@keyframe` animation and applies it to the element.
+Similar to jQuery and Velocity, intermediate styles are then written using the `requestAnimationFrame()` API until the journey is complete.
 
 When the animation has finished, the element's temporary styles are cleared. If it is now visible, it is assigned a display type (by default `"block"`). If it is now invisible, it is given the HTML5 `hidden` attribute.
 
@@ -71,8 +71,26 @@ Both methods work the same way. If a `DOMElement` is fully hidden, it will slide
 | ---- | ---- | ----------- | ------- |
 | *string* | display | When transitioning to visibility, this display type will be applied to the element. | `"block"` |
 | *int* | duration | Animation duration in milliseconds. | `100` |
-| *string* | transition | Transition type to use, either `"ease"` or `"linear"`. | `"linear"` |
+| *string* | transition | Transition type to use. | `"linear"` |
 | *string* | force | Rather than toggle, transition to a specific state, either `"show"` or `"hide"`. | `NULL` |
+
+**Transitions:**
+| Name | Description |
+| ---- | ----------- |
+| linear | Nothing fancy. |
+| ease | Alias of `"easeInOutCubic"`. |
+| easeInQuad | Accelerating from zero velocity. |
+| easeOutQuad | Decelerating to zero velocity. |
+| easeInOutQuad | Acceleration until halfway, then deceleration. |
+| easeInCubic | Accelerating from zero velocity. |
+| easeOutCubic | Decelerating to zero velocity. |
+| easeInOutCubic | Acceleration until halfway, then deceleration. |
+| easeInQuart | Accelerating from zero velocity. |
+| easeOutQuart | Decelerating to zero velocity. |
+| easeInOutQuart | Acceleration until halfway, then deceleration. |
+| easeInQuint | Accelerating from zero velocity. |
+| easeOutQuint | Decelerating to zero velocity. |
+| easeInOutQuint | Acceleration until halfway, then deceleration. |
 
 ### Example
 
