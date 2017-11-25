@@ -75,6 +75,7 @@ Both methods work the same way. If a `DOMElement` is fully hidden, it will slide
 | *string* | force | Rather than toggle, transition to a specific state, either `"show"` or `"hide"`. | `NULL` |
 
 **Transitions:**
+
 | Name | Description |
 | ---- | ----------- |
 | linear | Nothing fancy. |
