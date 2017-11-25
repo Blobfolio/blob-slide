@@ -146,23 +146,25 @@ var blobSlide = {
 		};
 
 		var from = this.getCurrent(el),
-			toKeys = Object.keys(to),
 			propKeys = Object.keys(this.getNothing()),
 			props = {},
 			start = null;
 
 		// Find out which properties we should be changing to.
-		propKeys.forEach(function(i){
-			if ((toKeys.indexOf(i) !== -1) && !isNaN(to[i])) {
-				if (to[i] !== from[i]) {
-					props[i] = [
-						from[i],
-						to[i],
-						to[i] - from[i]
+		for (i=0; i<propKeys.length; i++) {
+			if (
+				(typeof to[propKeys[i]] !== 'undefined') &&
+				!isNaN(to[propKeys[i]])
+			) {
+				if (to[propKeys[i]] !== from[propKeys[i]]) {
+					props[propKeys[i]] = [
+						from[propKeys[i]],
+						to[propKeys[i]],
+						to[propKeys[i]] - from[propKeys[i]]
 					];
 				}
 			}
-		});
+		}
 
 		// Nothing to animate?
 		propKeys = Object.keys(props);
@@ -174,8 +176,8 @@ var blobSlide = {
 
 		// Where are we going?
 		if (
-			((propKeys.indexOf('width') !== -1) && (props.width[1] > 0)) ||
-			((propKeys.indexOf('height') !== -1) && (props.height[1] > 0))
+			((typeof props.width !== 'undefined') && (props.width[1] > 0)) ||
+			((typeof props.height !== 'undefined') && (props.height[1] > 0))
 		) {
 			this.progress[progressKey].end = 'show';
 		}
@@ -214,12 +216,12 @@ var blobSlide = {
 				scale = blobSlide.easing[options.transition](progress);
 
 			// Update the draw.
-			propKeys.forEach(function(i){
-				var oldV = props[i][0],
-					diff = props[i][2];
+			for (i=0; i<propKeys.length; i++) {
+				var oldV = props[propKeys[i]][0],
+					diff = props[propKeys[i]][2];
 
-				el.style[i] = oldV + (diff * scale) + 'px';
-			});
+				el.style[propKeys[i]] = oldV + (diff * scale) + 'px';
+			}
 
 			// Call again?
 			if (scale < 1) {
