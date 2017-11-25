@@ -34,17 +34,7 @@ var blobSlide = {
 		}
 
 		var to = {},
-			next;
-
-		if (options.force === 'show') {
-			next = this.getSomething(el);
-		}
-		else if (options.force === 'hide') {
-			next = this.getNothing();
-		}
-		else {
-			next = this.getNext(el);
-		}
+			next = this.getToggleNext(el, options);
 
 		if (false === next) {
 			return false;
@@ -80,17 +70,7 @@ var blobSlide = {
 		}
 
 		var to = {},
-			next;
-
-		if (options.force === 'show') {
-			next = this.getSomething(el);
-		}
-		else if (options.force === 'hide') {
-			next = this.getNothing();
-		}
-		else {
-			next = this.getNext(el);
-		}
+			next = this.getToggleNext(el, options);
 
 		if (false === next) {
 			return false;
@@ -122,11 +102,11 @@ var blobSlide = {
 			return false;
 		}
 
-		var progressKey = parseInt(el.getAttribute('data-progress-key'), 10) || false;
+		var oldKey = parseInt(el.getAttribute('data-progress-key'), 10) || false;
 
 		// Stop any in-progress animations.
-		if (typeof this.progress[progressKey] !== 'undefined') {
-			this.progress[progressKey] = false;
+		if (oldKey && typeof this.progress[oldKey] !== 'undefined') {
+			this.progress[oldKey].abort = true;
 		}
 
 		// Make sure we have a sane transition duration.
@@ -155,12 +135,15 @@ var blobSlide = {
 		}
 
 		// Generate a new animation key.
-		progressKey = parseInt((Math.random() + '').replace('.', ''), 10);
-		while(this.progress[progressKey]) {
+		var progressKey = parseInt((Math.random() + '').replace('.', ''), 10);
+		while(typeof this.progress[progressKey] !== 'undefined') {
 			progressKey++;
 		}
-		this.progress[progressKey] = true;
 		el.setAttribute('data-progress-key', progressKey);
+		this.progress[progressKey] = {
+			abort: false,
+			end: 'hide',
+		};
 
 		var from = this.getCurrent(el),
 			toKeys = Object.keys(to),
@@ -182,11 +165,29 @@ var blobSlide = {
 		});
 
 		// Nothing to animate?
-		if (!Object.keys(props).length) {
+		propKeys = Object.keys(props);
+		if (!propKeys.length) {
 			delete(this.progress[progressKey]);
 			el.removeAttribute('data-progress-key');
 			return false;
 		}
+
+		// Where are we going?
+		if (
+			((propKeys.indexOf('width') !== -1) && (props.width[1] > 0)) ||
+			((propKeys.indexOf('height') !== -1) && (props.height[1] > 0))
+		) {
+			this.progress[progressKey].end = 'show';
+		}
+
+		// Make sure the element is visible.
+		if (!this.isPainted(el)) {
+			el.removeAttribute('hidden');
+			el.style.display = options.display;
+		}
+
+		// Hide overflow so transitions look better.
+		el.style.overflow = 'hidden';
 
 		/**
 		 * Animation Tick
@@ -195,26 +196,25 @@ var blobSlide = {
 		 * @return void Nothing.
 		 */
 		var tick = function(timestamp) {
-			if (start === null) {
-				start = timestamp;
+			// Did we lose it?
+			if (
+				(typeof blobSlide.progress[progressKey] === 'undefined') ||
+				blobSlide.progress[progressKey].abort
+			) {
+				return;
 			}
 
-			// Early abort?
-			if (!blobSlide.progress[progressKey]) {
-				delete(blobSlide.progress[progressKey]);
-				el.removeAttribute('data-progress-key');
-				return;
+			if (start === null) {
+				start = timestamp;
 			}
 
 			// Figure out time and scale.
 			var elapsed = timestamp - start,
 				progress = Math.min(elapsed / options.duration, 1),
-				scale = blobSlide.easing[options.transition](progress),
-				from = blobSlide.getCurrent(el),
-				propsKeys = Object.keys(props);
+				scale = blobSlide.easing[options.transition](progress);
 
 			// Update the draw.
-			propsKeys.forEach(function(i){
+			propKeys.forEach(function(i){
 				var oldV = props[i][0],
 					diff = props[i][2];
 
@@ -227,32 +227,27 @@ var blobSlide = {
 			}
 
 			// We've transitioned to somethingness.
-			if (
-				((propsKeys.indexOf('width') !== -1) && (props.width[1] > 0)) ||
-				((propsKeys.indexOf('height') !== -1) && (props.height[1] > 0))
-			) {
+			if (blobSlide.progress[progressKey].end === 'show') {
 				el.removeAttribute('style');
 				el.style.display = options.display;
 			}
+			// We've transitioned to nothingness.
 			else {
 				el.setAttribute('hidden', true);
 				el.removeAttribute('style');
 			}
 
+			delete(blobSlide.progress[progressKey]);
 			el.removeAttribute('data-progress-key');
 		};
 
-		// Make sure the element is visible.
-		if (!this.isPainted(el)) {
-			el.removeAttribute('hidden');
-			el.style.display = options.display;
-		}
-
-		// Hide overflow so transitions look better.
-		el.style.overflow = 'hidden';
-
 		// Start animating!
 		window.requestAnimationFrame(tick);
+
+		// Also, we can delete the old key now.
+		if (oldKey) {
+			delete(this.progress[oldKey]);
+		}
 	},
 
 	/**
@@ -332,6 +327,42 @@ var blobSlide = {
 
 		// And return the results.
 		return this.getSomething(el);
+	},
+
+	/**
+	 * Next Toggle
+	 *
+	 * Figure out the right kind of next for a toggle.
+	 *
+	 * @param DOMElement $el Element.
+	 * @param object $options Options.
+	 */
+	getToggleNext: function(el, options) {
+		var next;
+
+		// If there is an animation in-progress, we should force the
+		// opposite.
+		var progressKey = parseInt(el.getAttribute('data-progress-key'), 10) || false;
+		if (progressKey) {
+			if (this.progress[progressKey].end === 'show') {
+				options.force = 'hide';
+			}
+			else {
+				options.force = 'show';
+			}
+		}
+
+		if (options.force === 'show') {
+			next = this.getSomething(el);
+		}
+		else if (options.force === 'hide') {
+			next = this.getNothing();
+		}
+		else {
+			next = this.getNext(el);
+		}
+
+		return next;
 	},
 
 	/**
