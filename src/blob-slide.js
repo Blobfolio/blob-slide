@@ -1,7 +1,7 @@
 /**
  * blob-slide
  *
- * @version 1.1.0
+ * @version 1.1.1
  * @home https://github.com/Blobfolio/blob-slide
  *
  * Copyright © 2017 Blobfolio, LLC <https://blobfolio.com>
@@ -126,7 +126,7 @@ var blobSlide = {
 
 		// Stop any in-progress animations.
 		if (typeof this.progress[progressKey] !== 'undefined') {
-			this.progress[progressKey].abort = true;
+			this.progress[progressKey] = false;
 		}
 
 		// Make sure we have a sane transition duration.
@@ -159,57 +159,64 @@ var blobSlide = {
 		while(this.progress[progressKey]) {
 			progressKey++;
 		}
-		this.progress[progressKey] = {
-			start: null,
-			abort: false,
-			props: {},
-		};
+		this.progress[progressKey] = true;
 		el.setAttribute('data-progress-key', progressKey);
 
 		var from = this.getCurrent(el),
 			toKeys = Object.keys(to),
-			propKeys = Object.keys(this.getNothing());
+			propKeys = Object.keys(this.getNothing()),
+			props = {},
+			start = null;
 
 		// Find out which properties we should be changing to.
 		propKeys.forEach(function(i){
 			if ((toKeys.indexOf(i) !== -1) && !isNaN(to[i])) {
 				if (to[i] !== from[i]) {
-					blobSlide.progress[progressKey].props[i] = [from[i], to[i]];
+					props[i] = [
+						from[i],
+						to[i],
+						to[i] - from[i]
+					];
 				}
 			}
 		});
 
 		// Nothing to animate?
-		if (!Object.keys(this.progress[progressKey].props).length) {
+		if (!Object.keys(props).length) {
 			delete(this.progress[progressKey]);
 			el.removeAttribute('data-progress-key');
 			return false;
 		}
 
+		/**
+		 * Animation Tick
+		 *
+		 * @param float $timestamp Timestamp.
+		 * @return void Nothing.
+		 */
 		var tick = function(timestamp) {
-			if (blobSlide.progress[progressKey].start === null) {
-				blobSlide.progress[progressKey].start = timestamp;
+			if (start === null) {
+				start = timestamp;
 			}
 
 			// Early abort?
-			if (blobSlide.progress[progressKey].abort) {
+			if (!blobSlide.progress[progressKey]) {
 				delete(blobSlide.progress[progressKey]);
 				el.removeAttribute('data-progress-key');
 				return;
 			}
 
 			// Figure out time and scale.
-			var elapsed = timestamp - blobSlide.progress[progressKey].start,
+			var elapsed = timestamp - start,
 				progress = Math.min(elapsed / options.duration, 1),
 				scale = blobSlide.easing[options.transition](progress),
 				from = blobSlide.getCurrent(el),
-				propsKeys = Object.keys(blobSlide.progress[progressKey].props);
+				propsKeys = Object.keys(props);
 
 			// Update the draw.
 			propsKeys.forEach(function(i){
-				var oldV = blobSlide.progress[progressKey].props[i][0],
-					newV = blobSlide.progress[progressKey].props[i][1],
-					diff = newV - oldV;
+				var oldV = props[i][0],
+					diff = props[i][2];
 
 				el.style[i] = oldV + (diff * scale) + 'px';
 			});
@@ -221,8 +228,8 @@ var blobSlide = {
 
 			// We've transitioned to somethingness.
 			if (
-				((propsKeys.indexOf('width') !== -1) && (blobSlide.progress[progressKey].props.width[1] > 0)) ||
-				((propsKeys.indexOf('height') !== -1) && (blobSlide.progress[progressKey].props.height[1] > 0))
+				((propsKeys.indexOf('width') !== -1) && (props.width[1] > 0)) ||
+				((propsKeys.indexOf('height') !== -1) && (props.height[1] > 0))
 			) {
 				el.removeAttribute('style');
 				el.style.display = options.display;
@@ -241,8 +248,10 @@ var blobSlide = {
 			el.style.display = options.display;
 		}
 
-		// And call it.
+		// Hide overflow so transitions look better.
 		el.style.overflow = 'hidden';
+
+		// Start animating!
 		window.requestAnimationFrame(tick);
 	},
 
