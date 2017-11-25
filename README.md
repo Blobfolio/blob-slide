@@ -20,7 +20,7 @@ A lightweight, dependency-free Javascript animation library to toggle elements f
 
 It is not possible to transition elements to or from a non-layout hidden state (e.g. `display: none;`), or to or from an automatic dimension (e.g. `height: auto;`), using CSS3 animations alone.
 
-Such tasks require Javascript, and for most projects, that means leveraging a large framework like jQuery or Velocity.
+Such tasks require Javascript, and for most projects, that means leveraging a large framework like [jQuery](https://jquery.org/) or [Velocity](http://velocityjs.org/).
 
 blob-slide is a small, dependency-free Javascript library with a single focus: horizontal and vertical layout-visibility slide toggling. **That's it!** No more, no less.
 
