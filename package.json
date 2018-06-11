@@ -2,9 +2,9 @@
   "name": "blob-slide",
   "devDependencies": {
     "grunt": "*",
-    "grunt-contrib-jshint": "*",
-    "grunt-contrib-uglify": "*",
     "grunt-contrib-watch": "*",
-    "grunt-notify": "*"
+    "grunt-eslint": "*",
+    "grunt-notify": "*",
+    "grunt-contrib-uglify-es": "git://github.com/gruntjs/grunt-contrib-uglify.git#harmony"
   }
 }

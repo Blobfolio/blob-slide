@@ -7,8 +7,16 @@ module.exports = function(grunt) {
 		pkg: grunt.file.readJSON('package.json'),
 
 		// JS Hint.
-		jshint: {
-			all: ['src/blob-slide.js']
+		eslint: {
+			check: {
+				src: ['src/blob-slide.js'],
+			},
+			fix: {
+				options: {
+					fix: true,
+				},
+				src: ['src/blob-slide.js'],
+			}
 		},
 
 		// Minification.
@@ -38,21 +46,21 @@ module.exports = function(grunt) {
 		notify: {
 			js: {
 				options: {
-					title: "JS Files Built",
-					message: "Uglify and JSHint task complete"
+					title: "Javascript Done",
+					message: "JS has been linted, compiled, and minified."
 				}
 			}
 		}
 	});
 
 	// These plugins provide necessary tasks.
-	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-contrib-uglify-es');
 	grunt.loadNpmTasks('grunt-contrib-watch');
-	grunt.loadNpmTasks('grunt-contrib-jshint');
+	grunt.loadNpmTasks('grunt-eslint');
 	grunt.loadNpmTasks('grunt-notify');
 
 	// Tasks.
-	grunt.registerTask('javascript', ['jshint', 'uglify']);
+	grunt.registerTask('javascript', ['eslint', 'uglify']);
 
 	grunt.event.on('watch', function(action, filepath, target) {
 		grunt.log.writeln(target + ': ' + filepath + ' has ' + action);
