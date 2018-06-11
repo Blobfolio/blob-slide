@@ -136,7 +136,7 @@ const blobSlide = {
 		// Generate a new animation key.
 		let progressKey = parseInt((Math.random() + '').replace('.', ''), 10);
 		while ('undefined' !== typeof this.progress[progressKey]) {
-			progressKey++;
+			++progressKey;
 		}
 		el.setAttribute('data-progress-key', progressKey);
 		this.progress[progressKey] = {
@@ -150,7 +150,7 @@ const blobSlide = {
 		let start = null;
 
 		// Find out which properties we should be changing to.
-		for (let i = 0; i < propKeys.length; i++) {
+		for (let i = 0; i < propKeys.length; ++i) {
 			if (
 				('undefined' !== typeof to[propKeys[i]]) &&
 				!isNaN(to[propKeys[i]])
@@ -215,7 +215,7 @@ const blobSlide = {
 			const scale = blobSlide.easing[options.transition](progress);
 
 			// Update the draw.
-			for (let i = 0; i < propKeys.length; i++) {
+			for (let i = 0; i < propKeys.length; ++i) {
 				let oldV = props[propKeys[i]][0];
 				let diff = props[propKeys[i]][2];
 
