@@ -1,16 +1,15 @@
 /**
- * blob-slide
+ * Blob-slide
  *
- * @version 1.1.1
- * @home https://github.com/Blobfolio/blob-slide
+ * @version 1.2.0
+ * @author Blobfolio, LLC <hello@blobfolio.com>
+ * @package blob-slide
+ * @license WTFPL <http://www.wtfpl.net>
  *
- * Copyright © 2017 Blobfolio, LLC <https://blobfolio.com>
- *
- * This work is free. You can redistribute it and/or modify
- * it under the terms of the Do What The Fuck You Want To
- * Public License, Version 2.
+ * @see https://blobfolio.com
+ * @see https://github.com/Blobfolio/blob-slide
  */
-var blobSlide = {
+const blobSlide = {
 	// Keep track of what's animating.
 	progress: {},
 
@@ -19,22 +18,22 @@ var blobSlide = {
 	 *
 	 * Slide an element to or from nothingness horizontally.
 	 *
-	 * @param DOMElement $el Element.
-	 * @param string $options Transition options.
-	 * @return void|bool Nothing or false.
+	 * @param {DOMElement} el Element.
+	 * @param {string} options Transition options.
+	 * @returns {void|bool} Nothing or false.
 	 */
 	hslide: function(el, options) {
 		// Recurse?
 		if (el instanceof NodeList) {
-			var m = this;
-			el.forEach(function(e){
+			let m = this;
+			el.forEach(function(e) {
 				m.hslide(e, options);
 			});
 			return;
 		}
 
-		var to = {},
-			next = this.getToggleNext(el, options);
+		let to = {};
+		const next = this.getToggleNext(el, options);
 
 		if (false === next) {
 			return false;
@@ -55,22 +54,22 @@ var blobSlide = {
 	 *
 	 * Slide an element to or from nothingness vertically.
 	 *
-	 * @param DOMElement|NodeList $el Element.
-	 * @param string $options Transition options.
-	 * @return void|bool Nothing or false.
+	 * @param {DOMElement|NodeList} el Element.
+	 * @param {string} options Transition options.
+	 * @returns {void|bool} Nothing or false.
 	 */
 	vslide: function(el, options) {
 		// Recurse?
 		if (el instanceof NodeList) {
-			var m = this;
-			el.forEach(function(e){
+			let m = this;
+			el.forEach(function(e) {
 				m.vslide(e, options);
 			});
 			return;
 		}
 
-		var to = {},
-			next = this.getToggleNext(el, options);
+		let to = {};
+		const next = this.getToggleNext(el, options);
 
 		if (false === next) {
 			return false;
@@ -89,54 +88,54 @@ var blobSlide = {
 	/**
 	 * Generic Slide
 	 *
-	 * @param DOMElement $el Element.
-	 * @param object $to Destination values for width, height, etc.
-	 * @param string $options Transition options.
-	 * @return void|bool Nothing or false.
+	 * @param {DOMElement} el Element.
+	 * @param {object} to Destination values for width, height, etc.
+	 * @param {string} options Transition options.
+	 * @returns {void|bool} Nothing or false.
 	 */
 	slide: function(el, to, options) {
 		if (
 			!el.nodeType ||
-			(typeof to !== 'object')
+			('object' !== typeof to)
 		) {
 			return false;
 		}
 
-		var oldKey = parseInt(el.getAttribute('data-progress-key'), 10) || false;
+		let oldKey = parseInt(el.getAttribute('data-progress-key'), 10) || false;
 
 		// Stop any in-progress animations.
-		if (oldKey && typeof this.progress[oldKey] !== 'undefined') {
+		if (oldKey && 'undefined' !== typeof this.progress[oldKey]) {
 			this.progress[oldKey].abort = true;
 		}
 
 		// Make sure we have a sane transition duration.
-		if (typeof options !== 'object') {
+		if ('object' !== typeof options) {
 			options = {};
 		}
 		options.duration = parseInt(options.duration, 10) || 0;
-		if (options.duration <= 0) {
+		if (0 >= options.duration) {
 			options.duration = 100;
 		}
 
 		// And a somewhat sane display type.
-		if (!options.display || (typeof options.display !== 'string')) {
+		if (!options.display || ('string' !== typeof options.display)) {
 			options.display = 'block';
 		}
 		else {
 			options.display = (options.display + '').toLowerCase();
-			if (options.display === 'none') {
+			if ('none' === options.display) {
 				options.display = 'block';
 			}
 		}
 
 		// Sanitize transition.
-		if (!options.transition || (typeof this.easing[options.transition] === 'undefined')) {
+		if (!options.transition || ('undefined' === typeof this.easing[options.transition])) {
 			options.transition = 'linear';
 		}
 
 		// Generate a new animation key.
-		var progressKey = parseInt((Math.random() + '').replace('.', ''), 10);
-		while(typeof this.progress[progressKey] !== 'undefined') {
+		let progressKey = parseInt((Math.random() + '').replace('.', ''), 10);
+		while ('undefined' !== typeof this.progress[progressKey]) {
 			progressKey++;
 		}
 		el.setAttribute('data-progress-key', progressKey);
@@ -145,22 +144,22 @@ var blobSlide = {
 			end: 'hide',
 		};
 
-		var from = this.getCurrent(el),
-			propKeys = Object.keys(this.getNothing()),
-			props = {},
-			start = null;
+		let from = this.getCurrent(el);
+		let propKeys = Object.keys(this.getNothing());
+		let props = {};
+		let start = null;
 
 		// Find out which properties we should be changing to.
-		for (i=0; i<propKeys.length; i++) {
+		for (let i = 0; i < propKeys.length; i++) {
 			if (
-				(typeof to[propKeys[i]] !== 'undefined') &&
+				('undefined' !== typeof to[propKeys[i]]) &&
 				!isNaN(to[propKeys[i]])
 			) {
 				if (to[propKeys[i]] !== from[propKeys[i]]) {
 					props[propKeys[i]] = [
 						from[propKeys[i]],
 						to[propKeys[i]],
-						to[propKeys[i]] - from[propKeys[i]]
+						to[propKeys[i]] - from[propKeys[i]],
 					];
 				}
 			}
@@ -169,15 +168,15 @@ var blobSlide = {
 		// Nothing to animate?
 		propKeys = Object.keys(props);
 		if (!propKeys.length) {
-			delete(this.progress[progressKey]);
+			delete (this.progress[progressKey]);
 			el.removeAttribute('data-progress-key');
 			return false;
 		}
 
 		// Where are we going?
 		if (
-			((typeof props.width !== 'undefined') && (props.width[1] > 0)) ||
-			((typeof props.height !== 'undefined') && (props.height[1] > 0))
+			(('undefined' !== typeof props.width) && (0 < props.width[1])) ||
+			(('undefined' !== typeof props.height) && (0 < props.height[1]))
 		) {
 			this.progress[progressKey].end = 'show';
 		}
@@ -194,42 +193,42 @@ var blobSlide = {
 		/**
 		 * Animation Tick
 		 *
-		 * @param float $timestamp Timestamp.
-		 * @return void Nothing.
+		 * @param {float} timestamp Timestamp.
+		 * @returns {void} Nothing.
 		 */
-		var tick = function(timestamp) {
+		const tick = function(timestamp) {
 			// Did we lose it?
 			if (
-				(typeof blobSlide.progress[progressKey] === 'undefined') ||
+				('undefined' === typeof blobSlide.progress[progressKey]) ||
 				blobSlide.progress[progressKey].abort
 			) {
 				return;
 			}
 
-			if (start === null) {
+			if (null === start) {
 				start = timestamp;
 			}
 
 			// Figure out time and scale.
-			var elapsed = timestamp - start,
-				progress = Math.min(elapsed / options.duration, 1),
-				scale = blobSlide.easing[options.transition](progress);
+			const elapsed = timestamp - start;
+			const progress = Math.min(elapsed / options.duration, 1);
+			const scale = blobSlide.easing[options.transition](progress);
 
 			// Update the draw.
-			for (i=0; i<propKeys.length; i++) {
-				var oldV = props[propKeys[i]][0],
-					diff = props[propKeys[i]][2];
+			for (let i = 0; i < propKeys.length; i++) {
+				let oldV = props[propKeys[i]][0];
+				let diff = props[propKeys[i]][2];
 
 				el.style[propKeys[i]] = oldV + (diff * scale) + 'px';
 			}
 
 			// Call again?
-			if (scale < 1) {
+			if (1 > scale) {
 				return window.requestAnimationFrame(tick);
 			}
 
 			// We've transitioned to somethingness.
-			if (blobSlide.progress[progressKey].end === 'show') {
+			if ('show' === blobSlide.progress[progressKey].end) {
 				el.removeAttribute('style');
 				el.style.display = options.display;
 			}
@@ -239,7 +238,7 @@ var blobSlide = {
 				el.removeAttribute('style');
 			}
 
-			delete(blobSlide.progress[progressKey]);
+			delete (blobSlide.progress[progressKey]);
 			el.removeAttribute('data-progress-key');
 		};
 
@@ -248,7 +247,7 @@ var blobSlide = {
 
 		// Also, we can delete the old key now.
 		if (oldKey) {
-			delete(this.progress[oldKey]);
+			delete (this.progress[oldKey]);
 		}
 	},
 
@@ -258,7 +257,7 @@ var blobSlide = {
 	 * Return an object of properties to animate with everything in a
 	 * zeroed-out state.
 	 *
-	 * @return array Properties.
+	 * @returns {array} Properties.
 	 */
 	getNothing: function() {
 		return 	{
@@ -280,8 +279,8 @@ var blobSlide = {
 	 *
 	 * Clone an object to find its natural dimensions.
 	 *
-	 * @param DOMElement $el Element.
-	 * @return array Properties.
+	 * @param {DOMElement} el Element.
+	 * @returns {array} Properties.
 	 */
 	getSomething: function(el) {
 		if (!el.nodeType) {
@@ -291,8 +290,8 @@ var blobSlide = {
 		// If our element is hidden, we need to quickly make a
 		// visible clone so we can see what kind of space it would
 		// take up.
-		var parent = el.parentNode,
-			newEl = el.cloneNode(true);
+		let parent = el.parentNode;
+		let newEl = el.cloneNode(true);
 
 		newEl.removeAttribute('hidden');
 		newEl.removeAttribute('style');
@@ -301,7 +300,7 @@ var blobSlide = {
 		newEl.style.opacity = 0;
 
 		parent.appendChild(newEl);
-		var out = this.getCurrent(newEl);
+		const out = this.getCurrent(newEl);
 		parent.removeChild(newEl);
 
 		return out;
@@ -314,8 +313,8 @@ var blobSlide = {
 	 * return the size an element would have were it visible, or
 	 * a bunch of zeroes (because the next state is nothingness).
 	 *
-	 * @param DOMElement $el Element.
-	 * @return void|bool Nothing or false.
+	 * @param {DOMElement} el Element.
+	 * @returns {void|bool} Nothing or false.
 	 */
 	getNext: function(el) {
 		if (!el.nodeType) {
@@ -336,17 +335,18 @@ var blobSlide = {
 	 *
 	 * Figure out the right kind of next for a toggle.
 	 *
-	 * @param DOMElement $el Element.
-	 * @param object $options Options.
+	 * @param {DOMElement} el Element.
+	 * @param {object} options Options.
+	 * @returns {object} Next state.
 	 */
 	getToggleNext: function(el, options) {
-		var next;
+		let next;
 
 		// If there is an animation in-progress, we should force the
 		// opposite.
-		var progressKey = parseInt(el.getAttribute('data-progress-key'), 10) || false;
+		const progressKey = parseInt(el.getAttribute('data-progress-key'), 10) || false;
 		if (progressKey) {
-			if (this.progress[progressKey].end === 'show') {
+			if ('show' === this.progress[progressKey].end) {
 				options.force = 'hide';
 			}
 			else {
@@ -354,10 +354,10 @@ var blobSlide = {
 			}
 		}
 
-		if (options.force === 'show') {
+		if ('show' === options.force) {
 			next = this.getSomething(el);
 		}
-		else if (options.force === 'hide') {
+		else if ('hide' === options.force) {
 			next = this.getNothing();
 		}
 		else {
@@ -372,9 +372,9 @@ var blobSlide = {
 	 *
 	 * Return an element's current sizing.
 	 *
-	 * @param DOMElement $el Element.
-	 * @param int $duration Transition duration in milliseconds.
-	 * @return void|bool Nothing or false.
+	 * @param {DOMElement} el Element.
+	 * @param {int} duration Transition duration in milliseconds.
+	 * @returns {void|bool} Nothing or false.
 	 */
 	getCurrent: function(el) {
 		if (!el.nodeType) {
@@ -386,8 +386,8 @@ var blobSlide = {
 		}
 
 		// Computed can give us everything we need.
-		var out = {},
-			computed = window.getComputedStyle(el, null);
+		let out = {};
+		const computed = window.getComputedStyle(el, null);
 
 		// Copy the values over, but make sure everything's a float.
 		out.width = parseFloat(computed.getPropertyValue('width')) || 0.0;
@@ -412,52 +412,150 @@ var blobSlide = {
 	 * DOM. (We don't really care about visibility so much as
 	 * existence.)
 	 *
-	 * @param DOMElement $el Element.
-	 * @param int $duration Transition duration in milliseconds.
-	 * @return void|bool Nothing or false.
+	 * @param {DOMElement} el Element.
+	 * @returns {void|bool} Nothing or false.
 	 */
 	isPainted: function(el) {
 		if (!el.nodeType || el.getAttribute('hidden')) {
 			return false;
 		}
 
-		var computed = window.getComputedStyle(el, null);
-		return computed.display !== 'none';
+		const computed = window.getComputedStyle(el, null);
+		return 'none' !== computed.display;
 	},
 
 	/**
 	 * Easing Helpers
 	 *
 	 * @see {https://gist.github.com/gre/1650294}
+	 *
 	 */
 	easing: {
-		// No easing, no acceleration.
-		linear: function (t) { return t; },
-		// Alias of easeInOutCubic.
-		ease: function (t) { return t<0.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1; },
-		// Accelerating from zero velocity.
-		easeInQuad: function (t) { return t*t; },
-		// Decelerating to zero velocity.
-		easeOutQuad: function (t) { return t*(2-t); },
-		// Acceleration until halfway, then deceleration.
-		easeInOutQuad: function (t) { return t<0.5 ? 2*t*t : -1+(4-2*t)*t; },
-		// Accelerating from zero velocity.
-		easeInCubic: function (t) { return t*t*t; },
-		// Decelerating to zero velocity.
-		easeOutCubic: function (t) { return (--t)*t*t+1; },
-		// Acceleration until halfway, then deceleration.
-		easeInOutCubic: function (t) { return t<0.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1; },
-		// Accelerating from zero velocity.
-		easeInQuart: function (t) { return t*t*t*t; },
-		// Decelerating to zero velocity.
-		easeOutQuart: function (t) { return 1-(--t)*t*t*t; },
-		// Acceleration until halfway, then deceleration.
-		easeInOutQuart: function (t) { return t<0.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t; },
-		// Accelerating from zero velocity.
-		easeInQuint: function (t) { return t*t*t*t*t; },
-		// Decelerating to zero velocity.
-		easeOutQuint: function (t) { return 1+(--t)*t*t*t*t; },
-		// Acceleration until halfway, then deceleration.
-		easeInOutQuint: function (t) { return t<0.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t; }
+		/**
+		 * Simple Linear
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		linear: function(t) {
+			return t;
+		},
+		/**
+		 * Alias: easeInOutCubic
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		ease: function(t) {
+			return 0.5 > t ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+		},
+		/**
+		 * Quad: Accelerate in.
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		easeInQuad: function(t) {
+			return t * t;
+		},
+		/**
+		 * Quad: Decelerate out.
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		easeOutQuad: function(t) {
+			return t * (2 - t);
+		},
+		/**
+		 * Quad: Accelerate in, decelerate out.
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		easeInOutQuad: function(t) {
+			return 0.5 > t ? 2 * t * t : -1 + (4 - 2 * t) * t;
+		},
+		/**
+		 * Cubic: Accelerate in.
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		easeInCubic: function(t) {
+			return t * t * t;
+		},
+		/**
+		 * Cubic: Decelerate out.
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		easeOutCubic: function(t) {
+			return (--t) * t * t + 1;
+		},
+		/**
+		 * Cubic: Accelerate in, decelerate out.
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		easeInOutCubic: function(t) {
+			return 0.5 > t ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+		},
+		/**
+		 * Quarter: Accelerate in.
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		easeInQuart: function(t) {
+			return t * t * t * t;
+		},
+		/**
+		 * Quarter: Decelerate out.
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		easeOutQuart: function(t) {
+			return 1 - (--t) * t * t * t;
+		},
+		/**
+		 * Quarter: Accelerate in, decelerate out.
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		easeInOutQuart: function(t) {
+			return 0.5 > t ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t;
+		},
+		/**
+		 * Quint: Accelerate in.
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		easeInQuint: function(t) {
+			return t * t * t * t * t;
+		},
+		/**
+		 * Quint: Decelerate out.
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		easeOutQuint: function(t) {
+			return 1 + (--t) * t * t * t * t;
+		},
+		/**
+		 * Quint: Accelerate in, decelerate out.
+		 *
+		 * @param {int} t Timestamp.
+		 * @returns {float} Value.
+		 */
+		easeInOutQuint: function(t) {
+			return 0.5 > t ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t;
+		},
 	},
 };
