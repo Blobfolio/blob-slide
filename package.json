@@ -1,10 +1,12 @@
 {
   "name": "blob-slide",
-  "devDependencies": {
-    "grunt": "*",
-    "grunt-contrib-watch": "*",
-    "grunt-eslint": "*",
-    "grunt-notify": "*",
-    "grunt-contrib-uglify-es": "git://github.com/gruntjs/grunt-contrib-uglify.git#harmony"
+  "scripts": {
+    "preinstall": "npm list onchange -g || npm install onchange -g",
+    "watch": "onchange 'src/**/*.js' -- npm run -s js",
+    "js": "npm run -s eslint && npm run -s uglify && npm run -s notify:js",
+    "eslint": "npm_scripts/js-eslint.sh",
+    "eslint:fix": "npm_scripts/js-eslint-fix.sh",
+    "uglify": "npm_scripts/js-uglify.sh",
+    "notify:js": "npm_scripts/notify-js.sh"
   }
 }
