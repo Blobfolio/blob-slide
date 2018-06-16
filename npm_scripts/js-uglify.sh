@@ -17,7 +17,7 @@ command -v uglifyjs >/dev/null 2>&1 || {
 
 
 # Just one file.
-uglifyjs -c --ecma 5 -o "blob-slide.min.js" -- "src/blob-slide.js"
+uglifyjs -c --ecma 6 -o "blob-slide.min.js" -- "src/blob-slide.js"
 echo -e "\033[2mminifying:\033[0m blob-slide.min.js"
 
 
