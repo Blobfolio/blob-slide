@@ -9,7 +9,7 @@
  * @see https://blobfolio.com
  * @see https://github.com/Blobfolio/blob-slide
  */
-const blobSlide = {
+var blobSlide = {
 	// Keep track of what's animating.
 	progress: {},
 
