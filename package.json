@@ -3,10 +3,10 @@
   "scripts": {
     "preinstall": "npm list onchange -g || npm install onchange -g",
     "watch": "onchange 'src/**/*.js' -- npm run -s js",
-    "js": "npm run -s eslint && npm run -s uglify && npm run -s notify:js",
+    "js": "npm run -s eslint && npm run -s terser && npm run -s notify:js",
     "eslint": "npm_scripts/js-eslint.sh",
     "eslint:fix": "npm_scripts/js-eslint-fix.sh",
-    "uglify": "npm_scripts/js-uglify.sh",
+    "terser": "npm_scripts/js-terser.sh",
     "notify:js": "npm_scripts/notify-js.sh"
   }
 }
