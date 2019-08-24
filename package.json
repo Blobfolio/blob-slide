@@ -1,5 +1,11 @@
 {
   "name": "blob-slide",
+  "description": "A lightweight, dependency-free Javascript animation library to toggle elements from nothingness to somethingness and vice versa, using a vertical or horizontal slide animation.",
+  "license": "WTFPL",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Blobfolio/blob-slide.git"
+  },
   "scripts": {
     "preinstall": "npm list onchange -g || npm install onchange -g",
     "watch": "onchange 'src/**/*.js' -- npm run -s js",
