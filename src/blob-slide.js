@@ -1,7 +1,7 @@
 /**
  * Blob-slide
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Blobfolio, LLC <hello@blobfolio.com>
  * @package blob-slide
  * @license WTFPL <http://www.wtfpl.net>
@@ -9,6 +9,7 @@
  * @see https://blobfolio.com
  * @see https://github.com/Blobfolio/blob-slide
  */
+
 var blobSlide = {
 	// Keep track of what's animating.
 	progress: {},
@@ -25,26 +26,26 @@ var blobSlide = {
 	hslide: function(el, options) {
 		// Recurse?
 		if (el instanceof NodeList) {
-			let m = this;
-			el.forEach(function(e) {
-				m.hslide(e, options);
-			});
+			const elLength = el.length;
+			for (let i = 0; i < elLength; ++i) {
+				this.hslide(el[i], options);
+			}
 			return;
 		}
 
-		let to = {};
 		const next = this.getToggleNext(el, options);
-
 		if (false === next) {
 			return false;
 		}
 
 		// Focus on left/right stuff.
-		to.width = next.width;
-		to.paddingRight = next.paddingRight;
-		to.paddingLeft = next.paddingLeft;
-		to.marginRight = next.marginRight;
-		to.marginLeft = next.marginLeft;
+		const to = {
+			width: next.width,
+			paddingRight: next.paddingRight,
+			paddingLeft: next.paddingLeft,
+			marginRight: next.marginRight,
+			marginLeft: next.marginLeft,
+		};
 
 		return this.slide(el, to, options);
 	},
@@ -61,26 +62,26 @@ var blobSlide = {
 	vslide: function(el, options) {
 		// Recurse?
 		if (el instanceof NodeList) {
-			let m = this;
-			el.forEach(function(e) {
-				m.vslide(e, options);
-			});
+			const elLength = el.length;
+			for (let i = 0; i < elLength; ++i) {
+				this.vslide(el[i], options);
+			}
 			return;
 		}
 
-		let to = {};
 		const next = this.getToggleNext(el, options);
-
 		if (false === next) {
 			return false;
 		}
 
 		// Focus on top/bottom stuff.
-		to.height = next.height;
-		to.paddingTop = next.paddingTop;
-		to.paddingBottom = next.paddingBottom;
-		to.marginTop = next.marginTop;
-		to.marginBottom = next.marginBottom;
+		const to = {
+			height: next.height,
+			paddingTop: next.paddingTop,
+			paddingBottom: next.paddingBottom,
+			marginTop: next.marginTop,
+			marginBottom: next.marginBottom,
+		};
 
 		return this.slide(el, to, options);
 	},
@@ -95,21 +96,20 @@ var blobSlide = {
 	 */
 	slide: function(el, to, options) {
 		if (
-			!el.nodeType ||
-			('object' !== typeof to)
+			! el.nodeType ||
+			! this.isObjectFull(to)
 		) {
 			return false;
 		}
 
-		let oldKey = parseInt(el.getAttribute('data-progress-key'), 10) || false;
-
 		// Stop any in-progress animations.
-		if (oldKey && 'undefined' !== typeof this.progress[oldKey]) {
+		const oldKey = parseInt(el.getAttribute('data-progress-key'), 10) || false;
+		if (oldKey && this.isDef(this.progress[oldKey])) {
 			this.progress[oldKey].abort = true;
 		}
 
 		// Make sure we have a sane transition duration.
-		if ('object' !== typeof options) {
+		if (! this.isObject(options)) {
 			options = {};
 		}
 		options.duration = parseInt(options.duration, 10) || 0;
@@ -118,24 +118,24 @@ var blobSlide = {
 		}
 
 		// And a somewhat sane display type.
-		if (!options.display || ('string' !== typeof options.display)) {
+		if (! options.display || ('string' !== typeof options.display)) {
 			options.display = 'block';
 		}
 		else {
-			options.display = (options.display + '').toLowerCase();
+			options.display = options.display.toLowerCase();
 			if ('none' === options.display) {
 				options.display = 'block';
 			}
 		}
 
 		// Sanitize transition.
-		if (!options.transition || ('undefined' === typeof this.easing[options.transition])) {
+		if (! options.transition || (this.isUndef(this.easing[options.transition]))) {
 			options.transition = 'linear';
 		}
 
 		// Generate a new animation key.
 		let progressKey = parseInt((Math.random() + '').replace('.', ''), 10);
-		while ('undefined' !== typeof this.progress[progressKey]) {
+		while (this.isDef(this.progress[progressKey])) {
 			++progressKey;
 		}
 		el.setAttribute('data-progress-key', progressKey);
@@ -144,30 +144,28 @@ var blobSlide = {
 			end: 'hide',
 		};
 
-		let from = this.getCurrent(el);
+		const from = this.getCurrent(el);
 		let propKeys = Object.keys(this.getNothing());
 		let props = {};
 		let start = null;
 
 		// Find out which properties we should be changing to.
-		for (let i = 0; i < propKeys.length; ++i) {
+		for (let i in propKeys) {
 			if (
-				('undefined' !== typeof to[propKeys[i]]) &&
-				!isNaN(to[propKeys[i]])
+				('number' === typeof to[propKeys[i]]) &&
+				(to[propKeys[i]] !== from[propKeys[i]])
 			) {
-				if (to[propKeys[i]] !== from[propKeys[i]]) {
-					props[propKeys[i]] = [
-						from[propKeys[i]],
-						to[propKeys[i]],
-						to[propKeys[i]] - from[propKeys[i]],
-					];
-				}
+				props[propKeys[i]] = [
+					from[propKeys[i]],
+					to[propKeys[i]],
+					to[propKeys[i]] - from[propKeys[i]],
+				];
 			}
 		}
 
 		// Nothing to animate?
 		propKeys = Object.keys(props);
-		if (!propKeys.length) {
+		if (! propKeys.length) {
 			delete (this.progress[progressKey]);
 			el.removeAttribute('data-progress-key');
 			return false;
@@ -175,15 +173,15 @@ var blobSlide = {
 
 		// Where are we going?
 		if (
-			(('undefined' !== typeof props.width) && (0 < props.width[1])) ||
-			(('undefined' !== typeof props.height) && (0 < props.height[1]))
+			(this.isDef(props.width) && 0 < props.width[1]) ||
+			(this.isDef(props.height) && 0 < props.height[1])
 		) {
 			this.progress[progressKey].end = 'show';
 		}
 
 		// Make sure the element is visible.
-		if (!this.isPainted(el)) {
-			el.removeAttribute('hidden');
+		if (! this.isPainted(el)) {
+			el.hidden = null;
 			el.style.display = options.display;
 		}
 
@@ -199,7 +197,7 @@ var blobSlide = {
 		const tick = function(timestamp) {
 			// Did we lose it?
 			if (
-				('undefined' === typeof blobSlide.progress[progressKey]) ||
+				blobSlide.isUndef(blobSlide.progress[progressKey]) ||
 				blobSlide.progress[progressKey].abort
 			) {
 				return;
@@ -215,9 +213,9 @@ var blobSlide = {
 			const scale = blobSlide.easing[options.transition](progress);
 
 			// Update the draw.
-			for (let i = 0; i < propKeys.length; ++i) {
-				let oldV = props[propKeys[i]][0];
-				let diff = props[propKeys[i]][2];
+			for (let i in propKeys) {
+				const oldV = props[propKeys[i]][0];
+				const diff = props[propKeys[i]][2];
 
 				el.style[propKeys[i]] = oldV + (diff * scale) + 'px';
 			}
@@ -234,7 +232,7 @@ var blobSlide = {
 			}
 			// We've transitioned to nothingness.
 			else {
-				el.setAttribute('hidden', true);
+				el.hidden = true;
 				el.removeAttribute('style');
 			}
 
@@ -283,7 +281,7 @@ var blobSlide = {
 	 * @returns {array} Properties.
 	 */
 	getSomething: function(el) {
-		if (!el.nodeType) {
+		if (! el.nodeType) {
 			return false;
 		}
 
@@ -293,7 +291,7 @@ var blobSlide = {
 		let parent = el.parentNode;
 		let newEl = el.cloneNode(true);
 
-		newEl.removeAttribute('hidden');
+		newEl.hidden = null;
 		newEl.removeAttribute('style');
 		newEl.style.display = 'block';
 		newEl.style.visibility = 'visible';
@@ -317,7 +315,7 @@ var blobSlide = {
 	 * @returns {void|bool} Nothing or false.
 	 */
 	getNext: function(el) {
-		if (!el.nodeType) {
+		if (! el.nodeType) {
 			return false;
 		}
 
@@ -340,8 +338,6 @@ var blobSlide = {
 	 * @returns {object} Next state.
 	 */
 	getToggleNext: function(el, options) {
-		let next;
-
 		// If there is an animation in-progress, we should force the
 		// opposite.
 		const progressKey = parseInt(el.getAttribute('data-progress-key'), 10) || false;
@@ -355,16 +351,14 @@ var blobSlide = {
 		}
 
 		if ('show' === options.force) {
-			next = this.getSomething(el);
+			return this.getSomething(el);
 		}
 		else if ('hide' === options.force) {
-			next = this.getNothing();
+			return this.getNothing();
 		}
 		else {
-			next = this.getNext(el);
+			return this.getNext(el);
 		}
-
-		return next;
 	},
 
 	/**
@@ -377,32 +371,30 @@ var blobSlide = {
 	 * @returns {void|bool} Nothing or false.
 	 */
 	getCurrent: function(el) {
-		if (!el.nodeType) {
+		if (! el.nodeType) {
 			return false;
 		}
 
-		if (!this.isPainted(el)) {
+		if (! this.isPainted(el)) {
 			return this.getNothing();
 		}
 
 		// Computed can give us everything we need.
-		let out = {};
 		const computed = window.getComputedStyle(el, null);
 
 		// Copy the values over, but make sure everything's a float.
-		out.width = parseFloat(computed.getPropertyValue('width')) || 0.0;
-		out.height = parseFloat(computed.getPropertyValue('height')) || 0.0;
-		out.paddingTop = parseFloat(computed.getPropertyValue('padding-top')) || 0.0;
-		out.paddingRight = parseFloat(computed.getPropertyValue('padding-right')) || 0.0;
-		out.paddingBottom = parseFloat(computed.getPropertyValue('padding-bottom')) || 0.0;
-		out.paddingLeft = parseFloat(computed.getPropertyValue('padding-left')) || 0.0;
-		out.marginTop = parseFloat(computed.getPropertyValue('margin-top')) || 0.0;
-		out.marginRight = parseFloat(computed.getPropertyValue('margin-right')) || 0.0;
-		out.marginBottom = parseFloat(computed.getPropertyValue('margin-bottom')) || 0.0;
-		out.marginLeft = parseFloat(computed.getPropertyValue('margin-left')) || 0.0;
-
-		// And done.
-		return out;
+		return {
+			width: parseFloat(computed.getPropertyValue('width')) || 0.0,
+			height: parseFloat(computed.getPropertyValue('height')) || 0.0,
+			paddingTop: parseFloat(computed.getPropertyValue('padding-top')) || 0.0,
+			paddingRight: parseFloat(computed.getPropertyValue('padding-right')) || 0.0,
+			paddingBottom: parseFloat(computed.getPropertyValue('padding-bottom')) || 0.0,
+			paddingLeft: parseFloat(computed.getPropertyValue('padding-left')) || 0.0,
+			marginTop: parseFloat(computed.getPropertyValue('margin-top')) || 0.0,
+			marginRight: parseFloat(computed.getPropertyValue('margin-right')) || 0.0,
+			marginBottom: parseFloat(computed.getPropertyValue('margin-bottom')) || 0.0,
+			marginLeft: parseFloat(computed.getPropertyValue('margin-left')) || 0.0,
+		};
 	},
 
 	/**
@@ -416,7 +408,7 @@ var blobSlide = {
 	 * @returns {void|bool} Nothing or false.
 	 */
 	isPainted: function(el) {
-		if (!el.nodeType || el.getAttribute('hidden')) {
+		if (! el.nodeType || el.hidden) {
 			return false;
 		}
 
@@ -557,5 +549,53 @@ var blobSlide = {
 		easeInOutQuint: function(t) {
 			return 0.5 > t ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t;
 		},
+	},
+
+	/**
+	 * Is Defined
+	 *
+	 * @param {mixed} v Value.
+	 * @returns {bool} True/false.
+	 */
+	isDef: function(v) {
+		return (undefined !== v) && (null !== v);
+	},
+
+	/**
+	 * Is Object
+	 *
+	 * @param {mixed} v Value.
+	 * @returns {bool} True/false.
+	 */
+	isObject: function(v) {
+		return (null !== v) && ('object' === typeof v);
+	},
+
+	/**
+	 * Is Object (Full)
+	 *
+	 * @param {mixed} v Value.
+	 * @returns {bool} True/false.
+	 */
+	isObjectFull: function(v) {
+		if (! this.isObject(v)) {
+			return false;
+		}
+
+		for (let i in v) {
+			return true;
+		}
+
+		return false;
+	},
+
+	/**
+	 * Is Undefined
+	 *
+	 * @param {mixed} v Value.
+	 * @returns {bool} True/false.
+	 */
+	isUndef: function(v) {
+		return (undefined === v) || (null === v);
 	},
 };
