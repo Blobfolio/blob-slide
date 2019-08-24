@@ -111,7 +111,7 @@ blobSlide.hslide(els, { display: 'inline-block' });
 &nbsp;
 ## Compatibility
 
-blob-slide is compatible with all major modern web browsers and IE 11.
+blob-slide is compatible with all major modern web browsers.
 
 
 
