@@ -496,27 +496,27 @@
 			const from = getCurrent(el);
 			/** @suppress {checkTypes} */
 			let propKeys = Object.keys(getNothing());
-
 			let props = {};
 			let start = null;
 
-			// Find out which properties we should be changing to.
-			for (let i of propKeys) {
+			// Find out which properties we should be changing to. As we're starting from a blank slate, "10" is the number of properties included.
+			for (let i = 0; 10 > i; ++i) {
 				if (
-					('number' === typeof to[i]) &&
-					(to[i] !== from[i])
+					('number' === typeof to[propKeys[i]]) &&
+					(to[propKeys[i]] !== from[propKeys[i]])
 				) {
-					props[i] = [
-						from[i],
-						to[i],
-						to[i] - from[i],
+					props[propKeys[i]] = [
+						from[propKeys[i]],
+						to[propKeys[i]],
+						to[propKeys[i]] - from[propKeys[i]],
 					];
 				}
 			}
 
 			// Nothing to animate?
 			propKeys = Object.keys(props);
-			if (! propKeys.length) {
+			const propKeysLength = propKeys.length;
+			if (! propKeysLength) {
 				delete (slideProgress[progressKey]);
 				el.removeAttribute('data-progress-key');
 				return;
@@ -564,11 +564,11 @@
 				const scale = easing[options.transition](progress);
 
 				// Update the draw.
-				for (let i of propKeys) {
-					const oldV = props[i][0];
-					const diff = props[i][2];
+				for (let i = 0; i < propKeysLength; ++i) {
+					const oldV = props[propKeys[i]][0];
+					const diff = props[propKeys[i]][2];
 
-					el.style[i] = oldV + (diff * scale) + 'px';
+					el.style[propKeys[i]] = oldV + (diff * scale) + 'px';
 				}
 
 				// Call again?
