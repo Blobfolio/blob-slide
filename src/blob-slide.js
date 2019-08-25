@@ -243,9 +243,7 @@
 			return false;
 		}
 
-		// If our element is hidden, we need to quickly make a
-		// visible clone so we can see what kind of space it would
-		// take up.
+		// If our element is hidden, we need to quickly make a visible clone so we can see what kind of space it would take up.
 		const parent = el.parentNode;
 		const newEl = el.cloneNode(true);
 
@@ -269,8 +267,7 @@
 	 * @returns {boolean|Object} Properties or false.
 	 */
 	function getToggleNext(el, options) {
-		// If there is an animation in-progress, we should force the
-		// opposite.
+		// If there is an animation in-progress, we should force the opposite.
 		const progressKey = parseInt(el.getAttribute('data-progress-key'), 10) || false;
 		if (progressKey) {
 			if ('show' === slideProgress[progressKey].end) {
@@ -440,8 +437,6 @@
 		 * @param {Object} to Destination values for width, height, etc.
 		 * @param {Object} options Transition options.
 		 * @returns {void} Nothing.
-		 *
-		 * @suppress {missingProperties}
 		 */
 		slide: function(el, to, options) {
 			if (
@@ -494,7 +489,6 @@
 			};
 
 			const from = getCurrent(el);
-			/** @suppress {checkTypes} */
 			let propKeys = Object.keys(getNothing());
 			let props = {};
 			let start = null;
