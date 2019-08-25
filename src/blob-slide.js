@@ -409,16 +409,16 @@
 
 		// Copy the values over, but make sure everything's a float.
 		return {
-			width: parseFloat(computed.getPropertyValue('width')) || 0.0,
-			height: parseFloat(computed.getPropertyValue('height')) || 0.0,
-			paddingTop: parseFloat(computed.getPropertyValue('padding-top')) || 0.0,
-			paddingRight: parseFloat(computed.getPropertyValue('padding-right')) || 0.0,
-			paddingBottom: parseFloat(computed.getPropertyValue('padding-bottom')) || 0.0,
-			paddingLeft: parseFloat(computed.getPropertyValue('padding-left')) || 0.0,
-			marginTop: parseFloat(computed.getPropertyValue('margin-top')) || 0.0,
-			marginRight: parseFloat(computed.getPropertyValue('margin-right')) || 0.0,
-			marginBottom: parseFloat(computed.getPropertyValue('margin-bottom')) || 0.0,
-			marginLeft: parseFloat(computed.getPropertyValue('margin-left')) || 0.0,
+			width: parseFloat(computed.width) || 0.0,
+			height: parseFloat(computed.height) || 0.0,
+			paddingTop: parseFloat(computed.paddingTop) || 0.0,
+			paddingRight: parseFloat(computed.paddingRight) || 0.0,
+			paddingBottom: parseFloat(computed.paddingBottom) || 0.0,
+			paddingLeft: parseFloat(computed.paddingLeft) || 0.0,
+			marginTop: parseFloat(computed.marginTop) || 0.0,
+			marginRight: parseFloat(computed.marginRight) || 0.0,
+			marginBottom: parseFloat(computed.marginBottom) || 0.0,
+			marginLeft: parseFloat(computed.marginLeft) || 0.0,
 		};
 	}
 
