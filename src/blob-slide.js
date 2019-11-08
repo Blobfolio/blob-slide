@@ -142,7 +142,7 @@
 		 *
 		 * @param {number} t Timestamp.
 		 * @returns {number} Value.
-	 */
+		 */
 		easeInOutQuint: function(t) {
 			return 0.5 > t ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t;
 		},
