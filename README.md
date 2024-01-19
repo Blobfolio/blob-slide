@@ -46,10 +46,16 @@ Simple, clean, done!
 
 ### Getting Started
 
-Download and add [blob-slide.min.js](https://raw.githubusercontent.com/Blobfolio/blob-slide/master/blob-slide.min.js) to your project.
+Download and add the standalone [blob-slide.min.js](https://raw.githubusercontent.com/Blobfolio/blob-slide/master/blob-slide.min.js) script to your HTML:
 
 ```html
 <script src="blob-slide.min.js"></script>
+```
+
+Or download and import the [blob-slide.mjs](https://raw.githubusercontent.com/Blobfolio/blob-slide/master/blob-slide.mjs) Javascript module:
+
+```javascript
+import { blobSlide } from './blob-slide.mjs';
 ```
 
 ### Methods
@@ -118,7 +124,7 @@ blob-slide is compatible with all major modern web browsers.
 &nbsp;
 ## License
 
-Copyright © 2019 [Blobfolio, LLC](https://blobfolio.com) &lt;hello@blobfolio.com&gt;
+Copyright © 2024 [Blobfolio, LLC](https://blobfolio.com) &lt;hello@blobfolio.com&gt;
 
 This work is free. You can redistribute it and/or modify it under the terms of the Do What The Fuck You Want To Public License, Version 2.
 
@@ -135,14 +141,3 @@ This work is free. You can redistribute it and/or modify it under the terms of t
     TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
     
     0. You just DO WHAT THE FUCK YOU WANT TO.
-
-### Donations
-
-<table>
-  <tbody>
-    <tr>
-      <td width="200"><img src="https://blobfolio.com/wp-content/themes/b3/svg/btc-github.svg" width="200" height="200" alt="Bitcoin QR" /></td>
-      <td width="450">If you have found this work useful and would like to contribute financially, Bitcoin tips are always welcome!<br /><br /><strong>1Af56Nxauv8M1ChyQxtBe1yvdp2jtaB1GF</strong></td>
-    </tr>
-  </tbody>
-</table>

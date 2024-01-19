@@ -1,7 +1,7 @@
 /**
  * Blob-slide
  *
- * @version 1.3.1
+ * @version 1.3.2
  * @author Blobfolio, LLC <hello@blobfolio.com>
  * @package blob-slide
  * @license WTFPL <http://www.wtfpl.net>
